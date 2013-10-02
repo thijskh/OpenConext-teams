@@ -103,5 +103,6 @@
     <module>coin-teams-scim</module>
     <module>coin-teams-war</module>
     <module>coin-teams-dist</module>
+    <module>teams-mockpoc</module>
   </modules>
 </project>
