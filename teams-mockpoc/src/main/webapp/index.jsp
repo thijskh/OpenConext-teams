@@ -23,9 +23,24 @@
 <body>
 This is the mock page for Group Authorisations
 <br>
-<form action="createGroup.html" method="GET">
-<input type="submit" value="createGroup"/>
+<form action="createGroup.html" method="POST">
+<table>
+<tr>
+  <td>groupName</td>
+  <td><input type="text" name="groupName" /></td>
+</tr>
+<tr>
+  <td>licenseNumber</td>
+  <td><input type="text" name="licenseNumber" /></td>
+</tr>
+<tr>
+  <td>Quantity</td>
+  <td><input type="text" name="quantity" /></td>
+</tr>
+<tr>
+  <td colspan=2 align=right><input type="submit" value="createGroup"/></td>
+</tr>
+</table>
 </form>
 </body>
-
 </html>

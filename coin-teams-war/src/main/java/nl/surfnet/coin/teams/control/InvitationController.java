@@ -107,7 +107,15 @@ public class InvitationController {
       throw new RuntimeException("Invalid invitation");
     }
     Team team = controllerUtil.getTeamById(teamId);
-
+    
+    if (null != team.getAttributes() && null != team.getAttributes().get("Quantity")) {
+      String quantity = team.getAttributes().get("Quantity");
+      Integer teamSize = Integer.parseInt(quantity);
+      if (team.getMembers().size() >= teamSize) {
+        modelMap.addAttribute("teamFull", true);
+      }
+    }
+   
     modelMap.addAttribute("invitation", invitation);
     modelMap.addAttribute("team", team);
     modelMap.addAttribute("date", new Date(invitation.getTimestamp()));

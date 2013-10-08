@@ -16,9 +16,14 @@
 
 package nl.surfnet.coin.teams.interceptor;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
+import nl.surfnet.coin.api.client.domain.Email;
 import nl.surfnet.coin.api.client.domain.Person;
 
 /**
@@ -34,6 +39,22 @@ public class MockLoginInterceptor extends LoginInterceptor {
   void handleGuestStatus(HttpSession session, Person person) {
     session.setAttribute(USER_STATUS_SESSION_KEY,
             getTeamEnvironment().getMockUserStatus());
+  }
+  
+  @Override
+  public boolean preHandle(HttpServletRequest request,
+      HttpServletResponse response, Object handler) throws Exception {
+    HttpSession session = request.getSession();
+
+    Person person = new Person();
+    person.setId("urn:collab:person:example.com:admin");
+    person.setDisplayName("admin");
+    Email email = new Email("root@demo.openconext.org");
+    Set<Email> emails = new HashSet<Email>();
+    emails.add(email);
+    person.setEmails(emails);
+    session.setAttribute(PERSON_SESSION_KEY, person);
+    return true;
   }
 
   /**

@@ -382,4 +382,8 @@ public class InMemoryMockTeamService implements GrouperTeamService {
     return null;
   }
 
+  @Override
+  public Map<String, String> findTeamAttributesByTeam(String teamId) {
+    return null;
+  }
 }

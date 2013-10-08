@@ -16,6 +16,8 @@
 
 package nl.surfnet.coin.teams.service.impl;
 
+import static nl.surfnet.coin.teams.util.PersonUtil.isGuest;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -48,14 +50,18 @@ import edu.internet2.middleware.grouperClient.api.GcAssignGrouperPrivilegesLite;
 import edu.internet2.middleware.grouperClient.api.GcDeleteMember;
 import edu.internet2.middleware.grouperClient.api.GcFindGroups;
 import edu.internet2.middleware.grouperClient.api.GcFindStems;
+import edu.internet2.middleware.grouperClient.api.GcGetAttributeAssignments;
 import edu.internet2.middleware.grouperClient.api.GcGetGrouperPrivilegesLite;
 import edu.internet2.middleware.grouperClient.api.GcGetMembers;
 import edu.internet2.middleware.grouperClient.api.GcGroupDelete;
 import edu.internet2.middleware.grouperClient.api.GcGroupSave;
 import edu.internet2.middleware.grouperClient.ws.GcWebServiceError;
 import edu.internet2.middleware.grouperClient.ws.beans.WsAssignGrouperPrivilegesResults;
+import edu.internet2.middleware.grouperClient.ws.beans.WsAttributeAssign;
+import edu.internet2.middleware.grouperClient.ws.beans.WsAttributeDefName;
 import edu.internet2.middleware.grouperClient.ws.beans.WsFindGroupsResults;
 import edu.internet2.middleware.grouperClient.ws.beans.WsFindStemsResults;
+import edu.internet2.middleware.grouperClient.ws.beans.WsGetAttributeAssignmentsResults;
 import edu.internet2.middleware.grouperClient.ws.beans.WsGetMembersResult;
 import edu.internet2.middleware.grouperClient.ws.beans.WsGroup;
 import edu.internet2.middleware.grouperClient.ws.beans.WsGroupLookup;
@@ -65,7 +71,6 @@ import edu.internet2.middleware.grouperClient.ws.beans.WsGrouperPrivilegeResult;
 import edu.internet2.middleware.grouperClient.ws.beans.WsStem;
 import edu.internet2.middleware.grouperClient.ws.beans.WsSubject;
 import edu.internet2.middleware.grouperClient.ws.beans.WsSubjectLookup;
-import static nl.surfnet.coin.teams.util.PersonUtil.isGuest;
 
 /**
  * {@link nl.surfnet.coin.teams.service.GrouperTeamService} using Grouper LDAP as persistent store
@@ -111,11 +116,46 @@ public class GrouperTeamServiceWsImpl extends GrouperDaoImpl implements GrouperT
     int lastColonIndex = wsGroup.getName().lastIndexOf(":");
     String stemId = wsGroup.getName().substring(0, lastColonIndex);
     Stem stem = findStem(stemId);
-
-    return new Team(wsGroup.getName(), wsGroup.getDisplayExtension(),
+    
+    // add attributes to the team
+    Map<String, String> teamAttrs = findTeamAttributesByTeam(teamId);
+    
+    Team result = new Team(wsGroup.getName(), wsGroup.getDisplayExtension(),
         wsGroup.getDescription(), getMembers(wsGroup.getName(),
             privilegeResults), stem, getVisibilityGroup(wsGroup.getName(),
             privilegeResults));
+    result.setAttributes(teamAttrs);
+
+    return result;
+  }
+
+  @Override
+  public Map<String, String> findTeamAttributesByTeam(String teamId) {
+    Map<String, String> result = new HashMap<String, String>();
+    
+    GcGetAttributeAssignments query = new GcGetAttributeAssignments();
+    query.assignAttributeAssignType("group");
+    query.addOwnerGroupName(teamId);
+    WsGetAttributeAssignmentsResults qresult = query.execute();
+    if (null != qresult.getWsAttributeAssigns() && qresult.getWsAttributeAssigns().length > 0) {
+      for (WsAttributeAssign assign : qresult.getWsAttributeAssigns()) {
+        String attributeName = findNameByUUID(qresult, assign.getAttributeDefNameId());
+        if (null != assign.getWsAttributeAssignValues() && assign.getWsAttributeAssignValues().length == 1) {
+          String attributeValue = assign.getWsAttributeAssignValues()[0].getValueSystem();
+          result.put(attributeName, attributeValue);
+        }
+      }
+    }
+    return result;
+  }
+
+  private String findNameByUUID(WsGetAttributeAssignmentsResults qresult, String attributeDefNameId) {
+    for (WsAttributeDefName current : qresult.getWsAttributeDefNames()) {
+      if (current.getUuid().equals(attributeDefNameId)) {
+        return current.getDisplayExtension();
+      }
+    }
+    return attributeDefNameId;
   }
 
   public boolean doesStemExists(String stemName) {

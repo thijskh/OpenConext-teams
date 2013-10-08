@@ -39,7 +39,7 @@
           </connectors>
           <stopKey>stopteam</stopKey>
           <stopPort>9060</stopPort>
-          <scanIntervalSeconds>3</scanIntervalSeconds>
+          <reload>manual</reload>
           <useTestClasspath>true</useTestClasspath>
         </configuration>
         <dependencies>

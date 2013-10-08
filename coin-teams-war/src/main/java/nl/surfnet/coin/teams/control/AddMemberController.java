@@ -140,8 +140,6 @@ public class AddMemberController {
     form.setTeamId(team.getId());
     form.setInviter(person);
 
-    Locale locale = localeResolver.resolveLocale(request);
-    Object[] messageParams = {person.getDisplayName(), team.getName()};
     modelMap.addAttribute("invitationForm", form);
     addNewMemberRolesToModelMap(person, team.getId(), modelMap);
     ViewUtil.addViewToModelMap(request, modelMap);

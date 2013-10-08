@@ -16,10 +16,10 @@
 
 package nl.surfnet.coin.teams.service;
 
+import java.util.Map;
 import java.util.Set;
 
 import nl.surfnet.coin.api.client.domain.Person;
-
 import nl.surfnet.coin.teams.domain.Member;
 import nl.surfnet.coin.teams.domain.Role;
 import nl.surfnet.coin.teams.domain.Stem;
@@ -176,4 +176,6 @@ public interface GrouperTeamService extends GrouperDao {
   public boolean doesStemExists(String stemName);
 
   Stem findStem(String stemId);
+
+  Map<String, String> findTeamAttributesByTeam(String teamId);
 }

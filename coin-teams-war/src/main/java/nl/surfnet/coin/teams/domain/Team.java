@@ -20,7 +20,9 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang.builder.ToStringBuilder;
@@ -37,6 +39,7 @@ public class Team implements Serializable {
   private List<Member> members = new ArrayList<Member>();
   private Role viewerRole;
   private boolean viewable;
+  private Map<String, String> attributes;
   private int numberOfMembers;
   private Stem stem;
 
@@ -305,4 +308,20 @@ public class Team implements Serializable {
   public void setNumberOfMembers(int numberOfMembers) {
     this.numberOfMembers = numberOfMembers;
   }
+
+  public void addAttribute(String key, String value) {
+    if (null == attributes) {
+      attributes = new HashMap<String, String>();
+    }
+    attributes.put(key, value);
+  }
+  
+  public Map<String, String> getAttributes() {
+    return this.attributes;
+  }
+
+  public void setAttributes(Map<String, String> attributes) {
+    this.attributes = attributes;
+  }
+  
 }

@@ -23,7 +23,12 @@
 <%-- = Content --%>
 <div id="Content">
   <h1>${pageTitle}</h1>
+  <c:choose>
+  <c:when test="${not teamFull}">
   <p><spring:message code="jsp.acceptinvitation.Explanation" /></p>
+  <c:if test="${not empty team.attributes}">
+    <h4>Note this team can contain no more than <c:out value="${team.attributes['nl:surfnet:diensten:quantity']}" /> members </h4>
+  </c:if>
   <br class="clear" />
   <div class="column-container">
     <div class="column first-column">
@@ -65,6 +70,14 @@
       </p>
     </fieldset>
   </form>
+  </c:when>
+  <c:otherwise>
+  <br class="clear" />
+  <p>
+    sorry, this team has exceeded the maximum number of members
+  </p>
+  </c:otherwise>
+  </c:choose>
 <%-- / Content --%>
 </div>
 </teams:genericpage>

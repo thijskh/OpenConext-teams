@@ -127,6 +127,25 @@
 
   <%-- / Content --%>
   </div>
+  <c:if test="${not empty team.attributes}">
+  <br><br>
+  <div id="teamAttributes">
+  <h2>Team Attributes:</h2>
+  <table>
+  <thead>
+    <th>Attribute Name</th>
+    <th>Attribute Value</th>
+  </thead>
+  <c:forEach var="entry" items="${team.attributes}">
+  <tr>
+    <td><c:out value="${entry.key}" /></td>
+    <td><c:out value="${entry.value}" /></td>
+  </tr>
+  </c:forEach>
+  </table>
+  </div>
+  </c:if>
+  
 <%-- / TeamContainer --%>
 </div>
 </teams:genericpage>
