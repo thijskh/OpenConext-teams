@@ -47,7 +47,7 @@ public class CreateGroupController {
     addAttribute(ATTR_QUANTITY, form.getQuantity(), teamId);
     addAttribute(ATTR_SP_ENTITY_ID, spEntityId, teamId);
 
-    response.getWriter().println("group created!");
+    response.getWriter().println(String.format("License bought. (team created: %s)", teamId));
   }
 
   private String generateTeamName(String product, String productvariation, String loid) {
