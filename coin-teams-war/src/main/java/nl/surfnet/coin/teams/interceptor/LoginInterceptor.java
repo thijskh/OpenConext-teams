@@ -16,15 +16,6 @@
 
 package nl.surfnet.coin.teams.interceptor;
 
-import java.net.URLEncoder;
-import java.util.ArrayList;
-import java.util.List;
-
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
-
 import nl.surfnet.coin.api.client.OpenConextOAuthClient;
 import nl.surfnet.coin.api.client.domain.Person;
 import nl.surfnet.coin.teams.domain.Member;
@@ -32,12 +23,19 @@ import nl.surfnet.coin.teams.domain.MemberAttribute;
 import nl.surfnet.coin.teams.service.MemberAttributeService;
 import nl.surfnet.coin.teams.util.AuditLog;
 import nl.surfnet.coin.teams.util.TeamEnvironment;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.StringUtils;
 import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
+
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+import java.net.URLEncoder;
+import java.util.ArrayList;
+import java.util.List;
 
 import static nl.surfnet.coin.teams.util.PersonUtil.isGuest;
 
@@ -55,6 +53,7 @@ public class LoginInterceptor extends HandlerInterceptorAdapter {
   private static final Logger logger = LoggerFactory.getLogger(LoginInterceptor.class);
   private static final String STATUS_GUEST = "guest";
   private static final String STATUS_MEMBER = "member";
+  public static final String IDP_ENTITY_ID_SESSION_KEY = "nl.surfnet.coin.teams.interceptor.idpEntityId";
 
   @Autowired
   OpenConextOAuthClient apiClient;
@@ -88,7 +87,9 @@ public class LoginInterceptor extends HandlerInterceptorAdapter {
         person = apiClient.getPerson(remoteUser, null);
         // Add person to session:
         session.setAttribute(PERSON_SESSION_KEY, person);
-
+        String idpEntityId = getIdpEntityId(request);
+        session.setAttribute(IDP_ENTITY_ID_SESSION_KEY, idpEntityId);
+        logger.debug("idp entity id is: {}", idpEntityId);
         if (person == null) {
           String errorMessage = "Cannot find user: " + remoteUser;
           throw new ServletException(errorMessage);
@@ -170,6 +171,13 @@ public class LoginInterceptor extends HandlerInterceptorAdapter {
     return request.getHeader("REMOTE_USER");
   }
 
+  public String getIdpEntityId(HttpServletRequest request) {
+    if (request.getHeader("Shib-authenticating-authority") != null) {
+      return request.getHeader("Shib-authenticating-authority").split(";")[0];
+    } else {
+      return null;
+    }
+  }
   /**
    * @param teamEnvironment
    *          the teamEnvironment to set

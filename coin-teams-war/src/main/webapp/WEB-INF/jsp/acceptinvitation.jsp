@@ -53,6 +53,13 @@
     </div>
   </div>
   <br class="clear" />
+    <c:if test="${licenseInviteButIdpSpNotAllowed}">
+      <p>
+        If you accept this invitation, you are licensed to use the service this invitation is about.<br />
+        However, your institution as a whole is not allowed to use this service.<br />
+        A notification regarding this issue has been sent to the administrator of your institution.<br />
+      </p>
+    </c:if>
   <form action="doAcceptInvitation.shtml" id="AcceptInvitationForm">
     <fieldset>
       <input type="hidden" name="view" value="${view}"/>

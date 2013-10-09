@@ -182,4 +182,11 @@
      <property name="templateLoaderPath" value="classpath:/ftl/"/>
   </bean>
 
+  <bean id="janus" class="nl.surfnet.coin.janus.JanusRestClient">
+    <property name="janusUri" value="${janus.uri}" />
+    <property name="user" value="${janus.user}" />
+    <property name="secret" value="${janus.secret}" />
+  </bean>
+
+
 </beans>

@@ -16,30 +16,17 @@
 
 package nl.surfnet.coin.teams.control;
 
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Set;
-
-import javax.servlet.http.HttpServletRequest;
-
 import nl.surfnet.coin.api.client.domain.Person;
-import nl.surfnet.coin.teams.domain.Invitation;
-import nl.surfnet.coin.teams.domain.InvitationMessage;
-import nl.surfnet.coin.teams.domain.Member;
-import nl.surfnet.coin.teams.domain.Role;
-import nl.surfnet.coin.teams.domain.Team;
+import nl.surfnet.coin.janus.Janus;
+import nl.surfnet.coin.shared.domain.ErrorMail;
+import nl.surfnet.coin.shared.service.ErrorMessageMailer;
+import nl.surfnet.coin.teams.domain.*;
 import nl.surfnet.coin.teams.interceptor.LoginInterceptor;
 import nl.surfnet.coin.teams.service.GrouperTeamService;
 import nl.surfnet.coin.teams.service.TeamInviteService;
-import nl.surfnet.coin.teams.util.AuditLog;
-import nl.surfnet.coin.teams.util.ControllerUtil;
-import nl.surfnet.coin.teams.util.TeamEnvironment;
-import nl.surfnet.coin.teams.util.TokenUtil;
-import nl.surfnet.coin.teams.util.ViewUtil;
-
+import nl.surfnet.coin.teams.util.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
@@ -51,6 +38,15 @@ import org.springframework.web.bind.annotation.SessionAttributes;
 import org.springframework.web.bind.support.SessionStatus;
 import org.springframework.web.servlet.view.RedirectView;
 
+import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Set;
+
 import static nl.surfnet.coin.teams.util.PersonUtil.getFirstEmail;
 import static nl.surfnet.coin.teams.util.PersonUtil.isGuest;
 
@@ -60,6 +56,9 @@ import static nl.surfnet.coin.teams.util.PersonUtil.isGuest;
 @Controller
 @SessionAttributes({ "invitation", TokenUtil.TOKENCHECK })
 public class InvitationController {
+
+  private static final Logger LOG = LoggerFactory.getLogger(InvitationController.class);
+
 
   @Autowired
   private TeamInviteService teamInviteService;
@@ -72,6 +71,12 @@ public class InvitationController {
 
   @Autowired
   private ControllerUtil controllerUtil;
+
+  @Resource
+  private Janus janus;
+
+  @Resource(name = "errorMessageMailer")
+  private ErrorMessageMailer errorMessageMailer;
 
   /**
    * RequestMapping to show the accept invitation page.
@@ -115,7 +120,22 @@ public class InvitationController {
         modelMap.addAttribute("teamFull", true);
       }
     }
-   
+
+    if (team.getAttributes() != null && team.getAttributes().get("SP Entity ID") != null) {
+      String spEntityId = team.getAttributes().get("SP Entity ID");
+      String idpEntityId = (String) request.getSession().getAttribute(LoginInterceptor.IDP_ENTITY_ID_SESSION_KEY);
+      LOG.debug("SP Entity ID attribute: {}, Idp entity id: {}", spEntityId, idpEntityId);
+      List<String> allowedSps = janus.getAllowedSps(idpEntityId);
+      LOG.debug("According to SR, allowed SPs: {}", allowedSps);
+      if (!allowedSps.contains(spEntityId)) {
+        LOG.debug("Not allowed according to SR. Will notify user and send mail.");
+        modelMap.addAttribute("licenseInviteButIdpSpNotAllowed", true);
+        String msg = "User accepted invitation for license group while her IdP is not allowed to access the SP";
+        errorMessageMailer.sendErrorMail(new ErrorMail(msg, msg, msg, "teams-server", "teams"));
+      }
+    }
+
+
     modelMap.addAttribute("invitation", invitation);
     modelMap.addAttribute("team", team);
     modelMap.addAttribute("date", new Date(invitation.getTimestamp()));
