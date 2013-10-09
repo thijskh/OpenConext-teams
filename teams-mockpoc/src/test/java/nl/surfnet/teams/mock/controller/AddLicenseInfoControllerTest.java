@@ -1,6 +1,8 @@
 package nl.surfnet.teams.mock.controller;
 
 import static junit.framework.Assert.*;
+
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,6 +17,7 @@ public class AddLicenseInfoControllerTest {
   private AddLicenseInfoController controller;
   
   @Test
+  @Ignore
   public void testRetrieveGroups() {
     String license = controller.searchForLicense("urn:collab:person:example.com:admin", "http://mock-sp");
     assertEquals("2345-HS-21A", license);

@@ -46,7 +46,7 @@ public class AddLicenseInfoController {
     getMemberships.addWsSubjectLookup(theUser);
     WsGetMembershipsResults qresult = getMemberships.execute();
     for (WsGroup current : qresult.getWsGroups()) {
-      Map<String, String> attributes = findTeamAttributesByTeam(current.getDisplayName());
+      Map<String, String> attributes = findTeamAttributesByTeam(current.getName());
       if (null != attributes.get("nl:surfnet:diensten:spEntityId")) {
         LOG.info("found license for " + attributes.get("nl:surfnet:diensten:spEntityId"));
         if (attributes.get("nl:surfnet:diensten:spEntityId").equals(spEntityId)) {
