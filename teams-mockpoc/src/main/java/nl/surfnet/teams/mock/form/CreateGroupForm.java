@@ -1,22 +1,27 @@
 package nl.surfnet.teams.mock.form;
 
 public class CreateGroupForm {
-  private String groupName;
-  private String licenseNumber;
+
+  private String product;
   private String quantity;
-  
-  public String getGroupName() {
-    return groupName;
+  private String productvariation;
+
+  public String getProductvariation() {
+    return productvariation;
   }
-  public void setGroupName(String groupName) {
-    this.groupName = groupName;
+
+  public void setProductvariation(String productvariation) {
+    this.productvariation = productvariation;
   }
-  public String getLicenseNumber() {
-    return licenseNumber;
+
+
+  public String getProduct() {
+    return product;
   }
-  public void setLicenseNumber(String licenseNumber) {
-    this.licenseNumber = licenseNumber;
+  public void setProduct(String product) {
+    this.product = product;
   }
+
   public String getQuantity() {
     return quantity;
   }

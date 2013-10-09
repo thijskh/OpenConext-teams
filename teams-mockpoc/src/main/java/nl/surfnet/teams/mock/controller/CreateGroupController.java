@@ -1,11 +1,12 @@
 package nl.surfnet.teams.mock.controller;
 
-import java.io.IOException;
-
-import javax.servlet.http.HttpServletResponse;
-
+import edu.internet2.middleware.grouperClient.GrouperClient;
+import edu.internet2.middleware.grouperClient.api.GcAddMember;
+import edu.internet2.middleware.grouperClient.api.GcAssignAttributes;
+import edu.internet2.middleware.grouperClient.api.GcAssignGrouperPrivileges;
+import edu.internet2.middleware.grouperClient.api.GcGroupSave;
+import edu.internet2.middleware.grouperClient.ws.beans.*;
 import nl.surfnet.teams.mock.form.CreateGroupForm;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,20 +15,19 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 
-import edu.internet2.middleware.grouperClient.GrouperClient;
-import edu.internet2.middleware.grouperClient.api.GcAddMember;
-import edu.internet2.middleware.grouperClient.api.GcAssignAttributes;
-import edu.internet2.middleware.grouperClient.api.GcAssignGrouperPrivileges;
-import edu.internet2.middleware.grouperClient.api.GcGroupSave;
-import edu.internet2.middleware.grouperClient.ws.beans.WsAssignGrouperPrivilegesResults;
-import edu.internet2.middleware.grouperClient.ws.beans.WsAttributeAssignValue;
-import edu.internet2.middleware.grouperClient.ws.beans.WsGroup;
-import edu.internet2.middleware.grouperClient.ws.beans.WsGroupLookup;
-import edu.internet2.middleware.grouperClient.ws.beans.WsGroupToSave;
-import edu.internet2.middleware.grouperClient.ws.beans.WsSubjectLookup;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.util.UUID;
 
 @Controller()
 public class CreateGroupController {
+
+  private static final String SP_ENTITY_ID = "https://the-greenqloud-sp-entity-id";
+  private static final String TEAM_PREFIX = "nl:surfnet:diensten:";
+  public static final String ATTR_LICENSENUMBER = "nl:surfnet:diensten:licenseNumber";
+  public static final String ATTR_QUANTITY = "nl:surfnet:diensten:quantity";
+  public static final String ATTR_SP_ENTITY_ID = "nl:surfnet:diensten:spEntityId";
+
   private Logger LOG = LoggerFactory.getLogger(CreateGroupController.class);
   
   @Autowired
@@ -35,15 +35,37 @@ public class CreateGroupController {
 
   @RequestMapping(value="/createGroup.html", method=RequestMethod.POST)
   public void createGroup(@ModelAttribute("CreateGroupForm") CreateGroupForm form, HttpServletResponse response) throws IOException {
-    LOG.debug("create mock group {} with attributes: {} {}", form.getGroupName(), form.getLicenseNumber(), form.getQuantity());
-    addTeam(form.getGroupName(), form.getGroupName(), "description");
-    addAdminMember(form.getGroupName());
-    addAttribute("nl:surfnet:diensten:licenseNumber", form.getLicenseNumber(), form.getGroupName());
-    addAttribute("nl:surfnet:diensten:quantity", form.getQuantity(), form.getGroupName());
-    
+    String loid = generateLicenseNumber();
+    String teamId = TEAM_PREFIX + generateTeamId(form.getProduct(), form.getProductvariation(), loid);
+    String teamName = generateTeamName(form.getProduct(), form.getProductvariation(), loid);
+    String spEntityId = SP_ENTITY_ID;
+
+    LOG.debug("create group {} with attributes: {} {} {}", teamName, loid, form.getQuantity(), spEntityId);
+    addTeam(teamId, teamName, "description");
+    addAdminMember(teamId);
+    addAttribute(ATTR_LICENSENUMBER, loid, teamId);
+    addAttribute(ATTR_QUANTITY, form.getQuantity(), teamId);
+    addAttribute(ATTR_SP_ENTITY_ID, spEntityId, teamId);
+
     response.getWriter().println("group created!");
   }
-  
+
+  private String generateTeamName(String product, String productvariation, String loid) {
+    return product + ", " + productvariation + ", license " + loid;
+  }
+
+  private String generateTeamId(String product, String productvariation, String loid) {
+    return sanitize(product.substring(0, 6) + "-" + productvariation.substring(0,6) + "-" + loid);
+  }
+
+  private String sanitize(String s) {
+    return s.replaceAll("/[^\\s\\d]/i", "");
+  }
+
+  private String generateLicenseNumber() {
+    return UUID.randomUUID().toString();
+  }
+
   void addAdminMember(String teamId) {
     // add member
     GcAddMember addMember = new GcAddMember();
@@ -69,15 +91,12 @@ public class CreateGroupController {
     assignPrivilege.assignAllowed(true);
   
     WsAssignGrouperPrivilegesResults result = assignPrivilege.execute();
-    boolean success = result.getResultMetadata().getResultCode().equals("SUCCESS") ? true
-        : false;
-    if (!success) {
+    if (!result.getResultMetadata().getResultCode().equals("SUCCESS")) {
       LOG.error("Group change failed, no admin added");
     }
   }
   
-  void addTeam(String teamId, String displayName,
-      String teamDescription) {
+  void addTeam(String teamId, String displayName, String teamDescription) {
     WsGroup wsGroup = new WsGroup();
     wsGroup.setDescription(teamDescription);
     String dispName = displayName.substring(displayName.lastIndexOf(":")+1, displayName.length());
@@ -96,12 +115,12 @@ public class CreateGroupController {
     groupSave.execute();
   }
   
-  void addAttribute(String key, String value, String groupId) {
+  void addAttribute(String key, String value, String teamId) {
     GcAssignAttributes assignAttributes = new GcAssignAttributes();
     assignAttributes.assignAttributeAssignType("group");
     assignAttributes.assignAttributeAssignOperation("assign_attr");
     assignAttributes.addAttributeDefNameName(key);
-    assignAttributes.addOwnerGroupName(groupId);
+    assignAttributes.addOwnerGroupName(teamId);
     assignAttributes.assignAttributeAssignValueOperation("assign_value");
     WsAttributeAssignValue wsAttributeAssignValue = new WsAttributeAssignValue();
     wsAttributeAssignValue.setValueSystem(value);
