@@ -1,0 +1,14 @@
+Dear sir/madam,
+
+You have been registered as the team manager of a license team.
+
+Product: %s
+License number: %s
+Quantity: %s
+
+SP Entity ID: %s
+
+Use the SURFconext Teams application to manage the team and invite other people.
+
+Kind regards,
+SURFconext

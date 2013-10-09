@@ -10,23 +10,34 @@ import nl.surfnet.teams.mock.form.CreateGroupForm;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Controller;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 
+import javax.mail.Message;
+import javax.mail.MessagingException;
+import javax.mail.Session;
+import javax.mail.Transport;
+import javax.mail.internet.InternetAddress;
+import javax.mail.internet.MimeMessage;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.Scanner;
 import java.util.UUID;
 
 @Controller()
 public class CreateGroupController {
 
-  private static final String SP_ENTITY_ID = "https://the-greenqloud-sp-entity-id";
+  private static final String SP_ENTITY_ID = "http://mock-sp";
   private static final String TEAM_PREFIX = "nl:surfnet:diensten:";
   public static final String ATTR_LICENSENUMBER = "nl:surfnet:diensten:licenseNumber";
   public static final String ATTR_QUANTITY = "nl:surfnet:diensten:quantity";
   public static final String ATTR_SP_ENTITY_ID = "nl:surfnet:diensten:spEntityId";
+
+  public static final String MAILSERVER = "localhost";
 
   private Logger LOG = LoggerFactory.getLogger(CreateGroupController.class);
   
@@ -47,6 +58,12 @@ public class CreateGroupController {
     addAttribute(ATTR_QUANTITY, form.getQuantity(), teamId);
     addAttribute(ATTR_SP_ENTITY_ID, spEntityId, teamId);
 
+    String mailtemplate = new Scanner(new ClassPathResource("mailtemplate.txt").getFile()).useDelimiter("\\Z").next();
+    String mailBody = String.format(mailtemplate, form.getProduct(), loid, form.getQuantity(), spEntityId);
+
+    if (StringUtils.hasText(form.getManagermail())) {
+      sendMail("noreply@surfconext.nl", form.getManagermail(), "Activate your license team", mailBody);
+    }
     response.getWriter().println(String.format("License bought. (team created: %s)", teamId));
   }
 
@@ -129,5 +146,20 @@ public class CreateGroupController {
     actAsSubject.setSubjectId("GrouperSystem");
     assignAttributes.assignActAsSubject(actAsSubject);
     assignAttributes.execute();
+  }
+
+  public void sendMail(String from, String to, String subject, String body) {
+    System.getProperties().setProperty("mail.smtp.host", MAILSERVER);
+    Session session = Session.getDefaultInstance(System.getProperties());
+    try{
+      MimeMessage message = new MimeMessage(session);
+      message.setFrom(new InternetAddress(from));
+      message.addRecipient(Message.RecipientType.TO, new InternetAddress(to));
+      message.setSubject(subject);
+      message.setText(body);
+      Transport.send(message);
+    }catch (MessagingException mex) {
+      throw new RuntimeException(mex);
+    }
   }
 }

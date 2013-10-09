@@ -111,10 +111,14 @@
               </select>
 
               <label>License type</label>
+              <label class="radio">2<input type="radio" checked="checked" id="quantity2" name="quantity" value="2"></label>
               <label class="radio">20<input type="radio" checked="checked" id="quantity20" name="quantity" value="20"></label>
               <label class="radio">50<input type="radio" id="quantity50" name="quantity" value="50"></label>
               <label class="radio">100<input type="radio" id="quantity100" name="quantity" value="100"></label>
-              </label>
+
+
+              <label for="managermail">E-mail address of the team manager</label>
+              <input id="managermail" type="email" value="gvanderploeg@iprofs.nl" name="managermail" />
             </fieldset>
             <fieldset>
               <input id="submitbtn" class="btn btn-primary" type="submit" value="Submit"/>
