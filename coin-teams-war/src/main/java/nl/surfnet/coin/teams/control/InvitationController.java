@@ -130,8 +130,14 @@ public class InvitationController {
       if (!allowedSps.contains(spEntityId)) {
         LOG.debug("Not allowed according to SR. Will notify user and send mail.");
         modelMap.addAttribute("licenseInviteButIdpSpNotAllowed", true);
-        String msg = "User accepted invitation for license group while her IdP is not allowed to access the SP";
-        errorMessageMailer.sendErrorMail(new ErrorMail(msg, msg, msg, "teams-server", "teams"));
+        String msg = String.format("User accepted invitation for license %s while her IdP is not allowed to access the SP",
+                team.getAttributes().get("License Number"));
+        ErrorMail mail = new ErrorMail(msg, msg, msg, "teams-server", "teams");
+        mail.setSp(spEntityId);
+        mail.setIdp(idpEntityId);
+        mail.setUserId(((Person) request.getSession().getAttribute(LoginInterceptor.PERSON_SESSION_KEY)).getId());
+        mail.setLocation(this.getClass().getName());
+        errorMessageMailer.sendErrorMail(mail);
       }
     }
 
