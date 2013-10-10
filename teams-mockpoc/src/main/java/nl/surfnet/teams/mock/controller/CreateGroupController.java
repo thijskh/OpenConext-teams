@@ -62,6 +62,7 @@ public class CreateGroupController {
     String mailBody = String.format(mailtemplate, form.getProduct(), loid, form.getQuantity(), spEntityId);
 
     if (StringUtils.hasText(form.getManagermail())) {
+      LOG.info("sending mail to " + form.getManagermail() + " about new team");
       sendMail("noreply@surfconext.nl", form.getManagermail(), "Activate your license team", mailBody);
     }
     response.getWriter().println(String.format("License bought. (team created: %s)", teamId));
