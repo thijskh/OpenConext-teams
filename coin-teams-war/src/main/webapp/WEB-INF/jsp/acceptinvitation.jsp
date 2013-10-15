@@ -27,7 +27,7 @@
   <c:when test="${not teamFull}">
   <p><spring:message code="jsp.acceptinvitation.Explanation" /></p>
   <c:if test="${not empty team.attributes}">
-    <h4>Note this team can contain no more than <c:out value="${team.attributes['nl:surfnet:diensten:quantity']}" /> members </h4>
+    <h4>Note this team can contain no more than <c:out value="${team.attributes['Quantity']}" /> members </h4>
   </c:if>
   <br class="clear" />
   <div class="column-container">
